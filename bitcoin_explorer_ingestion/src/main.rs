@@ -37,6 +37,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // Wait for 60 seconds before the next iteration
-        sleep(Duration::from_secs(60)).await;
+        sleep(Duration::from_secs(30)).await;
     }
 }

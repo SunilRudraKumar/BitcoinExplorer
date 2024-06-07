@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,16 +14,16 @@ import {
   Settings,
   ShoppingCart,
   Users2,
-} from "lucide-react"
-
-import { Badge } from "@/components/ui/badge"
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-} from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -40,16 +40,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
-} from "@/components/ui/pagination"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+} from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -57,21 +57,49 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
+import { getOnchainData, getOffchainData } from "@/services/apiServices";
 
 export function Blocks() {
+  const [onchainData, setOnchainData] = useState<any>(null);
+  const [offchainData, setOffchainData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const onchain = await getOnchainData();
+        const offchain = await getOffchainData();
+        setOnchainData(onchain);
+        setOffchainData(offchain);
+      } catch (err: any) {
+        setError(err.message);
+      }
+    };
+
+    fetchData();
+
+    const interval = setInterval(fetchData, 1000); // Fetch data every 6 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!onchainData || !offchainData) {
+    return <div>Loading...</div>;
+  }
+
+  console.log(onchainData, offchainData);
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -218,8 +246,7 @@ export function Blocks() {
                 variant="outline"
                 size="icon"
                 className="overflow-hidden rounded-full"
-              >
-              </Button>
+              ></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -232,22 +259,21 @@ export function Blocks() {
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-              <Card
-                className="sm:col-span-2" x-chunk="dashboard-05-chunk-0"
-              >
+              <Card className="sm:col-span-2" x-chunk="dashboard-05-chunk-0">
                 <CardHeader className="pb-3">
                   <CardTitle>BlockChain</CardTitle>
                   <CardDescription className="max-w-lg text-balance leading-relaxed">
                     Insert Introduction
                   </CardDescription>
                 </CardHeader>
-                <CardFooter>
-                </CardFooter>
+                <CardFooter></CardFooter>
               </Card>
               <Card x-chunk="dashboard-05-chunk-1">
                 <CardHeader className="pb-2">
                   <CardDescription>Number of Blocks</CardDescription>
-                  <CardTitle className="text-4xl">846,805</CardTitle>
+                  <CardTitle className="text-4xl">
+                    {onchainData ? onchainData.block_count : "Loading..."}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-muted-foreground">
@@ -261,11 +287,14 @@ export function Blocks() {
               <Card x-chunk="dashboard-05-chunk-2">
                 <CardHeader className="pb-2">
                   <CardDescription>Transactions</CardDescription>
-                  <CardTitle className="text-4xl">40,795</CardTitle>
+                  <CardTitle className="text-4xl">
+                    {onchainData ? onchainData.num_transactions : "Loading..."}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-muted-foreground">
-                    +10% from last month
+                    Mempool Size :{" "}
+                    {onchainData ? onchainData.mempool_size : "Loading..."}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -298,9 +327,7 @@ export function Blocks() {
                       <DropdownMenuCheckboxItem checked>
                         tbd
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>
-                        tbd
-                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>tbd</DropdownMenuCheckboxItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Button
@@ -317,9 +344,7 @@ export function Blocks() {
                 <Card x-chunk="dashboard-05-chunk-3">
                   <CardHeader className="px-7">
                     <CardTitle>Cryptocurrency Prices</CardTitle>
-                    <CardDescription>
-                      Add a description
-                    </CardDescription>
+                    <CardDescription>Add a description</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -341,7 +366,7 @@ export function Blocks() {
                             <div className="font-medium">Bitcoin BCT</div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
-                            $70,769.13
+                            {offchainData ? offchainData.price : "Loading..."}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
                             <Badge className="text-xs" variant="secondary">
@@ -350,8 +375,7 @@ export function Blocks() {
                           </TableCell>
                           <Button className="text-right">Trade</Button>
                         </TableRow>
-                        <TableRow>
-                        </TableRow>
+                        <TableRow></TableRow>
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -360,9 +384,7 @@ export function Blocks() {
             </Tabs>
           </div>
           <div>
-            <Card
-              className="overflow-hidden" x-chunk="dashboard-05-chunk-4"
-            >
+            <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
               <CardHeader className="flex flex-row items-start bg-muted/50">
                 <div className="grid gap-0.5">
                   <CardTitle className="group flex items-center gap-2 text-lg">
@@ -371,9 +393,11 @@ export function Blocks() {
                   <CardDescription>tbd</CardDescription>
                 </div>
                 <div className="ml-auto flex items-center gap-1">
-                  <Button size="sm" variant="outline" className="h-8 gap-1">
-
-                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1"
+                  ></Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="icon" variant="outline" className="h-8 w-8">
@@ -391,12 +415,9 @@ export function Blocks() {
                 </div>
               </CardHeader>
               <CardContent className="p-6 text-sm">
-
-
                 <Separator className="my-4" />
 
                 <Separator className="my-4" />
-
               </CardContent>
               <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
                 <div className="text-xs text-muted-foreground">
@@ -424,5 +445,5 @@ export function Blocks() {
         </main>
       </div>
     </div>
-  )
+  );
 }
