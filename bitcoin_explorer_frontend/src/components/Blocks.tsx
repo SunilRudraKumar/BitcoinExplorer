@@ -67,7 +67,7 @@ export function Blocks() {
 
     fetchData();
 
-    const interval = setInterval(fetchData, 1000); // Fetch data every 6 seconds
+    const interval = setInterval(fetchData, 1000);
 
     return () => clearInterval(interval);
   }, []);
