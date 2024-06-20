@@ -2,23 +2,23 @@ version: "3"
 
 services:
   nextjs:
-    image: your-dockerhub-username/nextjs-app:latest
+    image: sunilrudrakumar/nextjs-app:latest
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://your_user:your_password@postgres:5432/bitcoin_explorer
+      - DATABASE_URL=postgres://user:password@postgres:5432/bitcoin_explorer
 
   rust_ingestion:
-    image: your-dockerhub-username/rust-ingestion:latest
+    image: sunilrudrakumar/rust-ingestion:latest
     depends_on:
       - postgres
 
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_DB: bitcoin_explorer
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: bitcoin-explorer
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
