@@ -66,6 +66,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          echo "${{ env.SSH_PRIVATE_KEY }}" > private_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
-          ssh -i private_key -o StrictHostKeyChecking=no ubuntu@54.243.12.64 'docker pull sunilrudrakumar/nextjs-app:latest && docker pull sunilrudrakumar/rust-ingestion:latest && docker-compose -f /path-to-your-docker-compose-file/docker-compose.yml up -d'
+          scp -i private_key /path/to/your/docker-compose.yml ubuntu@54.243.12.64:/home/ubuntu/docker-compose.yml
+          ssh -i private_key -o StrictHostKeyChecking=no ubuntu@54.243.12.64 'docker pull sunilrudrakumar/nextjs-app:latest && docker pull sunilrudrakumar/rust-ingestion:latest && docker-compose -f /home/ubuntu/docker-compose.yml up -d'
