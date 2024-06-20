@@ -2,11 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Client } from 'pg';
 
 const client = new Client({
-  user: 'user',
-  host: 'localhost',
-  database: 'bitcoin_explorer',
-  password: 'password',
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
 });
 
 client.connect().then(() => {
@@ -15,12 +11,12 @@ client.connect().then(() => {
   console.error('Failed to connect to PostgreSQL database:', err);
 });
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('Received request to /api/onchain');
   try {
     const query = `
       SELECT block_count, best_block_hash, num_transactions, total_volume, mempool_size, avg_fee, timestamp
-      FROM on_chain_data
+      FROM onchain_data
       ORDER BY block_count DESC
       LIMIT 5;
     `;
@@ -36,3 +32,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   }
 };
+
+export default handler;
