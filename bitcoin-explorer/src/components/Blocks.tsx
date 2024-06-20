@@ -45,9 +45,9 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-// import { getOnchainData, getOffchainData } from "@/services/apiServices";
 import { Cards_Blocks } from "./Cards_Blocks";
 import { Cards_Transactions } from "./Cards_Transactions";
+import BTCPrice from "./BTCPrice";
 
 export function Blocks() {
   const [onchainData, setOnchainData] = useState<any>(null);
@@ -55,23 +55,23 @@ export function Blocks() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate data fetch with a timeout
     const fetchData = async () => {
       try {
-        // Dummy data for testing
-        const onchain = {
-          block_count: 1000000,
-          num_transactions: 500000,
-          mempool_size: 3000,
-        };
+        console.log("Fetching onchain data from API...");
+        const onchainResponse = await fetch("/api/onchain");
+        if (!onchainResponse.ok) {
+          throw new Error(`HTTP error! status: ${onchainResponse.status}`);
+        }
+        const onchainData = await onchainResponse.json();
 
-        const offchain = {
-          price: "$40,000",
-        };
+        console.log("Fetched onchain data:", onchainData);
+        setOnchainData(onchainData);
 
-        setOnchainData(onchain);
+        // For now, keep offchain data as dummy data
+        const offchain = { price: "$40,000" };
         setOffchainData(offchain);
       } catch (err: any) {
+        console.error("Error fetching data:", err.message);
         setError(err.message);
       }
     };
@@ -91,7 +91,6 @@ export function Blocks() {
     return <div>Loading...</div>;
   }
 
-  console.log(onchainData, offchainData);
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -185,7 +184,7 @@ export function Blocks() {
                 <CardHeader className="pb-2">
                   <CardDescription>Number of Blocks</CardDescription>
                   <CardTitle className="text-4xl">
-                    {onchainData ? onchainData.block_count : "Loading..."}
+                    {onchainData ? onchainData[0].block_count : "Loading..."}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -201,13 +200,15 @@ export function Blocks() {
                 <CardHeader className="pb-2">
                   <CardDescription>Transactions</CardDescription>
                   <CardTitle className="text-4xl">
-                    {onchainData ? onchainData.num_transactions : "Loading..."}
+                    {onchainData
+                      ? onchainData[0].num_transactions
+                      : "Loading..."}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs text-muted-foreground">
                     Mempool Size :{" "}
-                    {onchainData ? onchainData.mempool_size : "Loading..."}
+                    {onchainData ? onchainData[0].mempool_size : "Loading..."}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -299,15 +300,18 @@ export function Blocks() {
 
           <Card>
             <CardContent>
-              <Cards_Blocks></Cards_Blocks>
+              <Cards_Blocks />
             </CardContent>
           </Card>
           <div>
             <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
               <CardContent>
-                <Cards_Transactions></Cards_Transactions>
+                <Cards_Transactions />
               </CardContent>
             </Card>
+          </div>
+          <div>
+            <BTCPrice />
           </div>
         </main>
       </div>

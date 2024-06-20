@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: bitcoin_explorer
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build Next.js application
+        working-directory: ./bitcoin_explorer
+        run: |
+          npm install
+          npm run build
+
+      - name: Build Rust ingestion script
+        working-directory: ./bitcoin_explorer_ingestion
+        run: cargo build --release
+
+      - name: Build Docker image for Next.js application
+        working-directory: ./bitcoin_explorer
+        run: docker build -t sunilrudrakumar/nextjs-app:latest .
+
+      - name: Build Docker image for Rust ingestion script
+        working-directory: ./bitcoin_explorer_ingestion
+        run: docker build -t sunilrudrakumar/rust-ingestion:latest .
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker image for Next.js application
+        run: docker push sunilrudrakumar/nextjs-app:latest
+
+      - name: Push Docker image for Rust ingestion script
+        run: docker push sunilrudrakumar/rust-ingestion:latest
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "${{ env.SSH_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+          ssh -i private_key -o StrictHostKeyChecking=no ubuntu@54.243.12.64 'docker pull sunilrudrakumar/nextjs-app:latest && docker pull sunilrudrakumar/rust-ingestion:latest && docker-compose -f /path-to-your-docker-compose-file/docker-compose.yml up -d'
