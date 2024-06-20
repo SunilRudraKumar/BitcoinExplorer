@@ -1,5 +1,5 @@
 {
-  "name": "bitcoin-explorer",
+  "name": "bitcoin_explorer",
   "version": "0.1.0",
   "private": true,
   "scripts": {
