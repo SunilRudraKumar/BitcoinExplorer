@@ -1,19 +1,11 @@
-# Use a more recent version of Rust
+# Dockerfile for Rust ingestion script
 FROM rust:1.63 as builder
-
 WORKDIR /usr/src/app
-
-# Copy the entire application into the Docker image
 COPY . .
-
-# Install the Rust application
+RUN apt-get update && apt-get install -y libssl-dev
 RUN cargo install --path .
 
-# Use a slim Debian base image for the final stage
 FROM debian:buster-slim
-
-# Copy the compiled binary from the builder stage
+RUN apt-get update && apt-get install -y libssl1.1 ca-certificates
 COPY --from=builder /usr/local/cargo/bin/bitcoin_explorer_ingestion /usr/local/bin/bitcoin_explorer_ingestion
-
-# Set the command to run the application
 CMD ["bitcoin_explorer_ingestion"]
