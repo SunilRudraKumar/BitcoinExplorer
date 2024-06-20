@@ -4,6 +4,7 @@ extern crate serde_json;
 
 use bitcoincore_rpc::{bitcoin::BlockHash, Auth, Client, RpcApi};
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::error::Error;
 use std::str::FromStr;
 use tokio_postgres::Client as PgClient;
@@ -20,10 +21,11 @@ pub struct OnchainData {
 }
 
 pub async fn fetch_onchain_data(pg_client: &PgClient) -> Result<OnchainData, Box<dyn Error>> {
-    let rpc = Client::new(
-        "http://localhost:8332",
-        Auth::UserPass("myuser".to_string(), "mypassword".to_string()),
-    )?;
+    let rpc_url = env::var("BITCOIN_RPC_URL").expect("BITCOIN_RPC_URL must be set");
+    let rpc_user = env::var("BITCOIN_RPC_USER").expect("BITCOIN_RPC_USER must be set");
+    let rpc_password = env::var("BITCOIN_RPC_PASS").expect("BITCOIN_RPC_PASS must be set");
+
+    let rpc = Client::new(&rpc_url, Auth::UserPass(rpc_user, rpc_password))?;
 
     let block_count = rpc.get_block_count()?;
     let best_block_hash_str = rpc.get_best_block_hash()?.to_string();
