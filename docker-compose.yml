@@ -12,6 +12,12 @@ services:
     image: sunilrudrakumar/rust-ingestion:latest
     depends_on:
       - postgres
+      - bitcoin_core
+    environment:
+      - DATABASE_URL=postgres://user:password@postgres:5432/bitcoin_explorer
+      - BITCOIN_RPC_URL=http://bitcoin_core:8332
+      - BITCOIN_RPC_USER=myuser
+      - BITCOIN_RPC_PASS=mypassword
 
   postgres:
     image: postgres:latest
@@ -24,5 +30,16 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  bitcoin_core:
+    image: ruimarinho/bitcoin-core:latest
+    environment:
+      BITCOIN_RPC_USER: myuser
+      BITCOIN_RPC_PASSWORD: mypassword
+    ports:
+      - "8332:8332"
+    volumes:
+      - bitcoin_data:/root/.bitcoin
+
 volumes:
   pgdata:
+  bitcoin_data:
